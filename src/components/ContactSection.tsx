@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PERSONAL_INFO } from "@/data/portfolioData";
+import emailjs from "@emailjs/browser";
 import { 
   Phone, 
   Copy, 
@@ -17,6 +18,7 @@ import { InstagramIcon } from "./Icons";
 export function ContactSection() {
   const [copiedPhone, setCopiedPhone] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,13 +32,37 @@ export function ContactSection() {
     setTimeout(() => setCopiedPhone(false), 3000);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormSubmitted(true);
-    setTimeout(() => {
-      setFormSubmitted(false);
-      setFormData({ name: "", email: "", subject: "", message: "" });
-    }, 4000);
+    setIsSubmitting(true);
+
+    try {
+      // EmailJS yapılandırması
+      const templateParams = {
+        name: formData.name,
+        email: formData.email,
+        title: formData.subject,
+        message: formData.message,
+      };
+
+      await emailjs.send(
+        "service_aop1h0f",
+        "template_0bivdb1",
+        templateParams,
+        "Amb2zpkjY47q1MtkW"
+      );
+
+      setFormSubmitted(true);
+      setTimeout(() => {
+        setFormSubmitted(false);
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      }, 4000);
+    } catch (error) {
+      console.error("Mail gönderme hatası:", error);
+      alert("Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -155,7 +181,7 @@ export function ContactSection() {
           <div className="lg:col-span-7 glass-panel p-8 rounded-2xl border border-slate-200/80 dark:border-slate-800/80">
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
               Mesaj Gönderin
-            </h3>
+          </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 font-mono">
               // Mesajınız doğrudan Furkan Kul iletişim kanalına aktarılır.
             </p>
@@ -224,10 +250,11 @@ export function ContactSection() {
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all"
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Mesajı İlet</span>
+                  <span>{isSubmitting ? "Gönderiliyor..." : "Mesajı İlet"}</span>
                 </button>
               </form>
             )}
